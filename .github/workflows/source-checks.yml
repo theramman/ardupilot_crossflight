@@ -1,0 +1,24 @@
+name: CrossFlight source checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-source-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Python syntax
+        run: python3 -m compileall -q tools tests
+      - name: Run hardware definition unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Verify no binary HAL archives committed
+        run: |
+          if git ls-files | grep -E '(^|/)(libch|libHAL_ChibiOS_libs)\.a$'; then
+            echo 'Proprietary RadioLink archives must not be checked in'
+            exit 1
+          fi
